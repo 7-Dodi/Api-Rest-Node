@@ -1,23 +1,13 @@
 import express from 'express';
 import {v4 as uuidv4} from 'uuid';
+import {User, Technologies} from './user/types'; //Importando os tipos
+import { updateData, getdataBaseArray } from './data/database';
 const app = express();
 app.use(express.json());
 
-//Construindo os tipos:
-type Technologies = {
-    id: string;
-    title: string;
-    studied: boolean;
-    deadline: Date;
-    created_at: Date;
-}
-
-type User = {
-    id: string;
-    name: string;
-    userName: string;
-    technologies: Technologies[];
-}
+app.get("/users", (req, res)=>{
+    res.status(201).json(getdataBaseArray());
+});
 
 app.listen(5000, ()=>{
     console.log("Servidor funcionando na porta 5000");
