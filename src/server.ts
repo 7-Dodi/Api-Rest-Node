@@ -1,23 +1,35 @@
 import express from 'express';
 import {v4 as uuidv4} from 'uuid';
+import {User, Technologies} from './user/types'; //Importando os tipos
+import { updateData, getdataBaseArray } from './data/database';
 const app = express();
 app.use(express.json());
 
-//Construindo os tipos:
-type Technologies = {
-    id: string;
-    title: string;
-    studied: boolean;
-    deadline: Date;
-    created_at: Date;
-}
+//Metódo get: (User)
+app.get("/users", (req, res)=>{
+    res.status(200).json(getdataBaseArray());
+});
 
-type User = {
-    id: string;
-    name: string;
-    userName: string;
-    technologies: Technologies[];
-}
+//Método post: (User)
+app.post("/users", (req, res)=>{
+    const {name, username} = req.body;
+    const userNameExist = getdataBaseArray().some((item) => item.userName === username);
+    //Confirmando se o userName já existe ou não:
+    if(userNameExist){
+        res.status(400).json({"error": "Existing UserName"});
+    }else{
+        //Criando User:
+        const newUser:User = {
+            id: uuidv4(),
+            name : name,
+            userName: username,
+            technologies: [],
+        }
+        //Atualizando o dataBase:
+        updateData(newUser);
+        res.status(201).json(newUser);
+    }
+});
 
 app.listen(5000, ()=>{
     console.log("Servidor funcionando na porta 5000");
