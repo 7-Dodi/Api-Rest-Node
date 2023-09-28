@@ -32,10 +32,39 @@ app.post("/users", (req, res)=>{
     }
 });
 
-//Método get: (Techlogies)
+//Método get: (Technologies)
 app.get("/technologies", checkExistsUserAccount, (req: CustomRequest, res)=>{
+    const {user} = req; //Retorna o username
+    const userName = getdataBaseArray().find((item) => item.userName === user?.username);
+    //Confirmando se o userName exista ou não:
+    if(!userName){
+        res.status(400).json({"error": "This UserName does not exist"});
+    }else{
+        res.status(200).json(userName.technologies);
+    }
+});
+
+//Método post: (Technologies)
+app.post("/technologies", checkExistsUserAccount, (req:CustomRequest, res)=>{
     const {user} = req;
-    res.status(200).json(user?.technologies || []);
+    const {title, deadline} = req.body;
+
+    const userNameExist = getdataBaseArray().find((item) => item.userName === user?.username);
+    //Confirmando se o userName já existe ou não:
+    if(!userNameExist){
+        res.status(400).json({"error": "This UserName does not exist"});
+    }else{
+        const newTecnology: Technologies = {
+            id: uuidv4(),
+            title : title,
+            studied : false,
+            deadline: new Date(deadline),
+            created_at: new Date(),
+        }
+    
+        userNameExist.technologies.push(newTecnology);
+        res.status(201).json(newTecnology);
+    }
 });
 
 app.listen(5000, ()=>{
