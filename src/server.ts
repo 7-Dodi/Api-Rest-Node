@@ -1,5 +1,5 @@
 import express from 'express';
-import {v4 as uuidv4} from 'uuid';
+import {v4 as uuidv4, validate as validateUuid} from 'uuid';
 import {User, Technologies} from './user/types'; //Importando os tipos
 import { updateData, getdataBaseArray } from './data/database';
 import { checkExistsUserAccount, CustomRequest } from './middleware/checkExistsUserAccount'; //Importando o Middleware
@@ -64,6 +64,35 @@ app.post("/technologies", checkExistsUserAccount, (req:CustomRequest, res)=>{
     
         userNameExist.technologies.push(newTecnology);
         res.status(201).json(newTecnology);
+    }
+});
+
+//Método put: (Technologies)
+app.put("/technologies/:id", checkExistsUserAccount, (req:CustomRequest, res)=>{
+    const {user} = req;
+    const {title, deadline} = req.body;
+    const id = req.params.id;
+
+    //Procurando usuário:
+    const userName = getdataBaseArray().find((item) => item.userName === user?.username);
+    //Confirmando se o userName exista ou não:
+    if(!userName){
+        res.status(400).json({"error": "This UserName does not exist"});
+    }else{
+        // Verificando se o ID é um UUID válido
+        if (!validateUuid(id)) {
+            res.status(400).json({ "error": "Invalid UUID" });
+            return;
+        }
+        //Procurando a tecnologia
+        const existsTechnologies = userName.technologies.find((item)=> item.id === id);
+        if(!existsTechnologies){
+            res.status(400).json({"error": "This Technologies does not exist"});
+            return;
+        }
+            existsTechnologies.title = title;
+            existsTechnologies.deadline = new Date(deadline);
+            res.status(200).json(existsTechnologies);
     }
 });
 
