@@ -96,6 +96,7 @@ app.put("/technologies/:id", checkExistsUserAccount, (req:CustomRequest, res)=>{
     }
 });
 
+//Método patch: (Technologies)
 app.patch("/technologies/:id/studied", checkExistsUserAccount, (req:CustomRequest, res)=>{
     const {user} = req;
     const id = req.params.id;
@@ -120,6 +121,34 @@ app.patch("/technologies/:id/studied", checkExistsUserAccount, (req:CustomReques
              existsTechnologies.studied = true;
              res.status(200).json(existsTechnologies);
      }
+});
+
+//Método delete: (Technologies)
+app.delete("/technologies/:id", checkExistsUserAccount, (req:CustomRequest, res)=>{
+    const {user} = req;
+    const id = req.params.id;
+
+    //Procurando usuário:
+    const userName = getdataBaseArray().find((item) => item.userName === user?.username);
+    //Confirmando se o userName exista ou não:
+    if(!userName){
+        res.status(404).json({"error": "This UserName does not exist"});
+    }else{
+        // Verificando se o ID é um UUID válido
+        if (!validateUuid(id)) {
+            res.status(400).json({ "error": "Invalid UUID" });
+            return;
+        }
+        //Procurando a tecnologia
+        const existsTechnologies = userName.technologies.findIndex((item)=> item.id === id);
+        if(existsTechnologies === -1){
+            res.status(400).json({"error": "This Technologies does not exist"});
+            return;
+        }
+            //Removendo do array:
+            userName.technologies.splice(existsTechnologies, 1);
+            res.status(200).json(userName.technologies);
+      }
 });
 
 app.listen(5000, ()=>{
