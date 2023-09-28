@@ -14,3 +14,4 @@ export type User = {
     userName: string;
     technologies: Technologies[];
 }
+

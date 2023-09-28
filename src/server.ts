@@ -2,7 +2,7 @@ import express from 'express';
 import {v4 as uuidv4, validate as validateUuid} from 'uuid';
 import {User, Technologies} from './user/types'; //Importando os tipos
 import { updateData, getdataBaseArray } from './data/database';
-import { checkExistsUserAccount, CustomRequest } from './middleware/checkExistsUserAccount'; //Importando o Middleware
+import { checkExistsUserAccount } from './middleware/checkExistsUserAccount'; //Importando o Middleware
 const app = express();
 app.use(express.json());
 
@@ -33,9 +33,9 @@ app.post("/users", (req, res)=>{
 });
 
 //Método get: (Technologies)
-app.get("/technologies", checkExistsUserAccount, (req: CustomRequest, res)=>{
+app.get("/technologies", checkExistsUserAccount, (req, res)=>{
     const {user} = req; //Retorna o username
-    const userName = getdataBaseArray().find((item) => item.userName === user?.username);
+    const userName = getdataBaseArray().find((item) => item.userName === user?.userName);
     //Confirmando se o userName exista ou não:
     if(!userName){
         res.status(404).json({"error": "This UserName does not exist"});
@@ -45,11 +45,11 @@ app.get("/technologies", checkExistsUserAccount, (req: CustomRequest, res)=>{
 });
 
 //Método post: (Technologies)
-app.post("/technologies", checkExistsUserAccount, (req:CustomRequest, res)=>{
+app.post("/technologies", checkExistsUserAccount, (req, res)=>{
     const {user} = req;
     const {title, deadline} = req.body;
 
-    const userNameExist = getdataBaseArray().find((item) => item.userName === user?.username);
+    const userNameExist = getdataBaseArray().find((item) => item.userName === user?.userName);
     //Confirmando se o userName já existe ou não:
     if(!userNameExist){
         res.status(404).json({"error": "This UserName does not exist"});
@@ -68,26 +68,26 @@ app.post("/technologies", checkExistsUserAccount, (req:CustomRequest, res)=>{
 });
 
 //Método put: (Technologies)
-app.put("/technologies/:id", checkExistsUserAccount, (req:CustomRequest, res)=>{
+app.put("/technologies/:id", checkExistsUserAccount, (req, res)=>{
     const {user} = req;
     const {title, deadline} = req.body;
     const id = req.params.id;
 
     //Procurando usuário:
-    const userName = getdataBaseArray().find((item) => item.userName === user?.username);
+    const userName = getdataBaseArray().find((item) => item.userName === user?.userName);
     //Confirmando se o userName exista ou não:
     if(!userName){
         res.status(404).json({"error": "This UserName does not exist"});
     }else{
         // Verificando se o ID é um UUID válido
         if (!validateUuid(id)) {
-            res.status(400).json({ "error": "Invalid UUID" });
+            res.status(404).json({ "error": "Invalid UUID" });
             return;
         }
         //Procurando a tecnologia
         const existsTechnologies = userName.technologies.find((item)=> item.id === id);
         if(!existsTechnologies){
-            res.status(400).json({"error": "This Technologies does not exist"});
+            res.status(404).json({"error": "This Technologies does not exist"});
             return;
         }
             existsTechnologies.title = title;
@@ -97,58 +97,58 @@ app.put("/technologies/:id", checkExistsUserAccount, (req:CustomRequest, res)=>{
 });
 
 //Método patch: (Technologies)
-app.patch("/technologies/:id/studied", checkExistsUserAccount, (req:CustomRequest, res)=>{
+app.patch("/technologies/:id/studied", checkExistsUserAccount, (req, res)=>{
     const {user} = req;
     const id = req.params.id;
 
      //Procurando usuário:
-     const userName = getdataBaseArray().find((item) => item.userName === user?.username);
+     const userName = getdataBaseArray().find((item) => item.userName === user?.userName);
      //Confirmando se o userName exista ou não:
      if(!userName){
          res.status(404).json({"error": "This UserName does not exist"});
      }else{
          // Verificando se o ID é um UUID válido
          if (!validateUuid(id)) {
-             res.status(400).json({ "error": "Invalid UUID" });
+             res.status(404).json({ "error": "Invalid UUID" });
              return;
          }
          //Procurando a tecnologia
          const existsTechnologies = userName.technologies.find((item)=> item.id === id);
          if(!existsTechnologies){
-             res.status(400).json({"error": "This Technologies does not exist"});
+             res.status(404).json({"error": "This Technologies does not exist"});
              return;
          }
              existsTechnologies.studied = true;
              res.status(200).json(existsTechnologies);
-     }
+    }
 });
 
 //Método delete: (Technologies)
-app.delete("/technologies/:id", checkExistsUserAccount, (req:CustomRequest, res)=>{
+app.delete("/technologies/:id", checkExistsUserAccount, (req, res)=>{
     const {user} = req;
     const id = req.params.id;
 
     //Procurando usuário:
-    const userName = getdataBaseArray().find((item) => item.userName === user?.username);
+    const userName = getdataBaseArray().find((item) => item.userName === user?.userName);
     //Confirmando se o userName exista ou não:
     if(!userName){
         res.status(404).json({"error": "This UserName does not exist"});
     }else{
         // Verificando se o ID é um UUID válido
         if (!validateUuid(id)) {
-            res.status(400).json({ "error": "Invalid UUID" });
+            res.status(404).json({ "error": "Invalid UUID" });
             return;
         }
         //Procurando a tecnologia
         const existsTechnologies = userName.technologies.findIndex((item)=> item.id === id);
         if(existsTechnologies === -1){
-            res.status(400).json({"error": "This Technologies does not exist"});
+            res.status(404).json({"error": "This Technologies does not exist"});
             return;
         }
             //Removendo do array:
             userName.technologies.splice(existsTechnologies, 1);
             res.status(200).json(userName.technologies);
-      }
+    }
 });
 
 app.listen(5000, ()=>{
