@@ -33,6 +33,6 @@ npm run dev
 - POST /users: Adiciona um novo usuário.
 - GET /technologies: Retorna todas as tecnologias do usúario passado pelo o `heard` da aplicação.
 - POST /technologies: Adiciona uma nova tecnologia ao usuário passado pelo o `heard` da aplicação.
-- PUT technologies/:id: Atualiza o `title` e o `deadline` de uma tecnologia existente.
-- PATCH technologies/:id/studied: Atualiza o atributo studied para `true`
-- DELETE technologies/:id: Remove uma tecnologia existe de um usuário passado pelo `heard`da aplicação.
+- PUT /technologies/:id: Atualiza o `title` e o `deadline` de uma tecnologia existente.
+- PATCH /technologies/:id/studied: Atualiza o atributo studied para `true`
+- DELETE /technologies/:id: Remove uma tecnologia existe de um usuário passado pelo `heard`da aplicação.
