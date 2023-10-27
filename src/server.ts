@@ -183,12 +183,19 @@ app.patch("/technologies/:id/studied", checkExistsUserAccount, async (req, res)=
 });
 
 //Método delete: (Technologies)
-app.delete("/technologies/:id", checkExistsUserAccount, (req, res)=>{
+app.delete("/technologies/:id", checkExistsUserAccount, async (req, res)=>{
     const {user} = req;
     const id = req.params.id;
 
     //Procurando usuário:
-    const userName = getdataBaseArray().find((item) => item.userName === user?.userName);
+    const userName = await prisma.user.findUnique({
+        where:{
+            userName: user?.userName
+        },
+        include:{
+            technologies: true
+        }
+    });
     //Confirmando se o userName exista ou não:
     if(!userName){
         res.status(404).json({"error": "This UserName does not exist"});
@@ -199,14 +206,17 @@ app.delete("/technologies/:id", checkExistsUserAccount, (req, res)=>{
             return;
         }
         //Procurando a tecnologia
-        const existsTechnologies = userName.technologies.findIndex((item)=> item.id === id);
-        if(existsTechnologies === -1){
-            res.status(404).json({"error": "This Technologies does not exist"});
-            return;
-        }
-            //Removendo do array:
-            userName.technologies.splice(existsTechnologies, 1);
+        try {
+            const deleteTechnologies = await prisma.technologies.delete({
+                where:{
+                    id: id
+                }
+            })
+
             res.status(200).json(userName.technologies);
+        } catch (error) {
+            res.status(404).json({"error": "This Technologies does not exist"});
+        }
     }
 });
 
