@@ -3,31 +3,34 @@ import {v4 as uuidv4, validate as validateUuid} from 'uuid';
 import {User, Technologies} from './user/types'; //Importando os tipos
 import { updateData, getdataBaseArray } from './data/database';
 import { checkExistsUserAccount } from './middleware/checkExistsUserAccount'; //Importando o Middleware
+import { prisma } from './user/repositoryUser';
+
 const app = express();
 app.use(express.json());
 
 //Metódo get: (User)
-app.get("/users", (req, res)=>{
-    res.status(200).json(getdataBaseArray());
+app.get("/users", async (req, res)=>{
+    res.status(200).json(await prisma.user.findMany()); //Irá retornar todos os usuários
 });
 
 //Método post: (User)
-app.post("/users", (req, res)=>{
+app.post("/users", async (req, res)=>{
     const {name, username} = req.body;
-    const userNameExist = getdataBaseArray().some((item) => item.userName === username);
+    const userNameExist = (await prisma.user.findMany()).some((item) => item.userName === username);
     //Confirmando se o userName já existe ou não:
     if(userNameExist){
         res.status(404).json({"error": "Existing UserName"});
     }else{
         //Criando User:
-        const newUser:User = {
-            id: uuidv4(),
-            name : name,
-            userName: username,
-            technologies: [],
-        }
+        const newUser = await prisma.user.create({
+            data:{
+                id: uuidv4(),
+                name: name,
+                userName: username,               
+            }
+        })
+        
         //Atualizando o dataBase:
-        updateData(newUser);
         res.status(201).json(newUser);
     }
 });
