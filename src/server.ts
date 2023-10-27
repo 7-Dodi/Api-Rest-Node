@@ -95,31 +95,49 @@ app.post("/technologies", checkExistsUserAccount, async (req, res)=>{
 });
 
 //Método put: (Technologies)
-app.put("/technologies/:id", checkExistsUserAccount, (req, res)=>{
+app.put("/technologies/:id", checkExistsUserAccount, async (req, res)=>{
     const {user} = req;
     const {title, deadline} = req.body;
     const id = req.params.id;
 
-    //Procurando usuário:
-    const userName = getdataBaseArray().find((item) => item.userName === user?.userName);
-    //Confirmando se o userName exista ou não:
-    if(!userName){
-        res.status(404).json({"error": "This UserName does not exist"});
-    }else{
-        // Verificando se o ID é um UUID válido
-        if (!validateUuid(id)) {
-            res.status(404).json({ "error": "Invalid UUID" });
-            return;
-        }
-        //Procurando a tecnologia
-        const existsTechnologies = userName.technologies.find((item)=> item.id === id);
-        if(!existsTechnologies){
-            res.status(404).json({"error": "This Technologies does not exist"});
-            return;
-        }
-            existsTechnologies.title = title;
-            existsTechnologies.deadline = new Date(deadline);
-            res.status(200).json(existsTechnologies);
+    try {
+        const userName = await prisma.user.findUnique({
+            where:{
+                userName: user?.userName
+            },
+            include:{
+                technologies: true
+            }
+        })
+        //Confirmando se o userName exista ou não:
+        if(!userName){
+            res.status(404).json({"error": "This UserName does not exist"});
+        }else{
+            // Verificando se o ID é um UUID válido
+            if (!validateUuid(id)) {
+                res.status(404).json({ "error": "Invalid UUID" });
+                return;
+            }
+            //Procurando a tecnologia
+            try {
+                const updateTechnologies = await prisma.technologies.update({
+                    where:{
+                        id: id
+                    },
+                    data:{
+                        title: title,
+                        deadline: new Date(deadline)
+                    }
+                });
+                res.status(200).json(updateTechnologies);
+            } catch (error) {
+                console.log(error);
+                res.status(404).json({"error": "This Technologies does not exist"});
+            }   
+            }
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({"error": "Internal server error"});
     }
 });
 
