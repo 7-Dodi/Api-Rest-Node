@@ -36,37 +36,61 @@ app.post("/users", async (req, res)=>{
 });
 
 //Método get: (Technologies)
-app.get("/technologies", checkExistsUserAccount, (req, res)=>{
+app.get("/technologies", checkExistsUserAccount, async (req, res)=>{
     const {user} = req; //Retorna o username
-    const userName = getdataBaseArray().find((item) => item.userName === user?.userName);
-    //Confirmando se o userName exista ou não:
-    if(!userName){
-        res.status(404).json({"error": "This UserName does not exist"});
-    }else{
-        res.status(200).json(userName.technologies);
+    try {
+        const userName = await prisma.user.findUnique({
+            where:{
+                userName: user?.userName,
+            },
+            include:{
+                technologies: true
+            }
+        })
+        //Confirmando se o userName exista ou não:
+        if(!userName){
+            res.status(404).json({"error": "This UserName does not exist"});
+        }else{
+            res.status(200).json(userName.technologies);
+        }
+    } catch (error) {
+        res.status(500).json({"error": "Internal server error"});        
     }
 });
 
 //Método post: (Technologies)
-app.post("/technologies", checkExistsUserAccount, (req, res)=>{
+app.post("/technologies", checkExistsUserAccount, async (req, res)=>{
     const {user} = req;
     const {title, deadline} = req.body;
 
-    const userNameExist = getdataBaseArray().find((item) => item.userName === user?.userName);
-    //Confirmando se o userName já existe ou não:
-    if(!userNameExist){
-        res.status(404).json({"error": "This UserName does not exist"});
-    }else{
-        const newTecnology: Technologies = {
-            id: uuidv4(),
-            title : title,
-            studied : false,
-            deadline: new Date(deadline),
-            created_at: new Date(),
-        }
-    
-        userNameExist.technologies.push(newTecnology);
-        res.status(201).json(newTecnology);
+    try {
+        const userNameExist = await prisma.user.findUnique({
+            where:{
+                userName: user?.userName,
+            },
+            include:{
+                technologies: true
+            }
+        })
+        //Confirmando se o userName já existe ou não:
+        if(!userNameExist){
+            res.status(404).json({"error": "This UserName does not exist"});
+        }else{
+            const newTecnology = await prisma.technologies.create({
+                data:{
+                    id: uuidv4(),
+                    title : title,
+                    studied : false,
+                    deadline: new Date(deadline),
+                    created_at: new Date(),
+                    userId: userNameExist.id
+                }
+            })
+            res.status(201).json(newTecnology);
+        }   
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({"error": "Internal server error"});
     }
 });
 

@@ -1,9 +1,9 @@
-import { getdataBaseArray } from "../data/database";
+import { prisma } from "../user/repositoryUser";
 import { Request, Response, NextFunction } from "express";
 
 // Define uma nova interface que representa a sua definição personalizada da requisição (Request)
-const checkUserName = (useName: unknown) =>{
-    const searchUser = getdataBaseArray().some((item)=> item.userName === useName); 
+const checkUserName = async (useName: unknown) =>{
+    const searchUser = (await prisma.user.findMany()).some((item)=> item.userName === useName); 
     return searchUser;
 }; 
 
